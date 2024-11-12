@@ -1,4 +1,4 @@
-from keras.models import load_model
+import keras
 import cv2
 import numpy as np
 from random import choice
@@ -38,7 +38,7 @@ def calculate_winner(move1, move2):
             return "Computer"
 
 
-model = load_model("model_stone_paper_scissors.h5")
+model = keras.models.load_model("model_stone_paper_scissors.h5")
 
 video = cv2.VideoCapture(0)
 
