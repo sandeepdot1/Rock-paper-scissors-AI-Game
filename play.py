@@ -1,9 +1,9 @@
-import keras
 import cv2
 import numpy as np
-from random import choice
+import tensorflow.lite as tflite
 import threading
 import time
+from random import choice
 
 # Reverse Mapping
 REV_CLASS_MAP = {
@@ -23,8 +23,11 @@ def calculate_winner(move1, move2):
     outcomes = {("rock", "scissors"): "User", ("scissors", "paper"): "User", ("paper", "rock"): "User"}
     return outcomes.get((move1, move2), "Computer")
 
-# Load Model
-model = keras.models.load_model("model_stone_paper_scissors.h5")
+# Load TensorFlow Lite Model
+interpreter = tflite.Interpreter(model_path="model_stone_paper_scissors.tflite")
+interpreter.allocate_tensors()
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
 
 # Video Capture in Separate Thread
 class VideoStream:
@@ -63,6 +66,17 @@ move_icons = {
     "scissors": cv2.imread("images/scissors.png")
 }
 
+# Function to Predict Move using TFLite
+def predict_move(img):
+    img = cv2.resize(img, (224, 224)) / 255.0
+    img = np.expand_dims(img.astype(np.float32), axis=0)
+
+    interpreter.set_tensor(input_details[0]['index'], img)
+    interpreter.invoke()
+    pred = interpreter.get_tensor(output_details[0]['index'])
+
+    return mapper(np.argmax(pred[0]))
+
 # Main Loop
 while True:
     start_time = time.time()
@@ -72,12 +86,7 @@ while True:
 
     # User Region of Interest
     roi = frame[100:600, 100:600]
-    img = cv2.resize(roi, (224, 224))
-    img = np.expand_dims(img, axis=0)
-
-    # Predict User Move
-    pred = model.predict(img, verbose=0)
-    user_move_name = mapper(np.argmax(pred[0]))
+    user_move_name = predict_move(cv2.cvtColor(roi, cv2.COLOR_BGR2RGB))
 
     # Determine Computer Move and Winner
     if prev_move != user_move_name and user_move_name != "none":
@@ -86,6 +95,9 @@ while True:
 
     prev_move = user_move_name
 
+    # Draw Border around User's Gesture Area
+    cv2.rectangle(frame, (100, 100), (600, 600), (0, 255, 0), 3)  # Green Border for Hand Placement
+
     # Display Information
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(frame, f"Your Move: {user_move_name}", (50, 50), font, 1.2, (255, 255, 255), 2)
@@ -93,7 +105,7 @@ while True:
     cv2.putText(frame, f"Winner: {winner}", (400, 700), font, 2, (0, 0, 255), 4)
 
     # Display Computer's Move Icon
-    if computer_move_name in move_icons:
+    if computer_move_name in move_icons and move_icons[computer_move_name] is not None:
         icon = cv2.resize(move_icons[computer_move_name], (500, 500))
         frame[100:600, 750:1250] = icon
 
