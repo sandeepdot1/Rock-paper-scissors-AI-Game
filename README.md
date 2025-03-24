@@ -29,8 +29,8 @@ Ensure you have the following dependencies installed:
 
 1. **Clone the Repository**
    ```sh
-   git clone https://github.com/yourusername/rock-paper-scissors-ai.git
-   cd rock-paper-scissors-ai
+   git clone https://github.com/sandeepdot1/Rock-paper-scissors-AI-Game.git
+   cd Rock-paper-scissors-AI-Game
    ```
 
 2. **Create a Virtual Environment** (Recommended)
