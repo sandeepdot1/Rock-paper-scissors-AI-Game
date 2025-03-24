@@ -80,16 +80,5 @@ Press `Q` to exit the game.
 
 ---
 
-## 🤝 Contributing
-
-Want to improve this project? Feel free to fork and create a PR!
-
-1. Fork the repo
-2. Create a feature branch
-3. Commit changes
-4. Push to your fork and submit a PR
-
----
-
 Happy coding! 🚀
 
